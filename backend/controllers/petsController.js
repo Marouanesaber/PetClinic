@@ -55,9 +55,14 @@ const createPet = (req, res) => {
 
   console.log("Received payload for creating pet:", req.body); // Debugging log
 
+  // Validate required fields
   if (!name || !type_id || !owner_id) {
     console.error("Validation failed: Missing required fields"); // Debugging log
     return res.status(400).json({ error: 'Required fields: name, type_id, owner_id' });
+  }
+
+  if (!Number.isInteger(type_id) || !Number.isInteger(owner_id)) {
+    return res.status(400).json({ error: 'type_id and owner_id must be valid integers' });
   }
 
   const query = `
@@ -65,7 +70,7 @@ const createPet = (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
-  db.query(query, [name, type_id, breed, date_of_birth, gender, owner_id, notes], (err, result) => {
+  db.query(query, [name, parseInt(type_id), breed, date_of_birth, gender, parseInt(owner_id), notes], (err, result) => {
     if (err) {
       console.error("Error executing query for creating pet:", err.message); // Debugging log
       return res.status(500).json({ error: 'Error creating pet' });
@@ -82,17 +87,31 @@ const updatePet = (req, res) => {
   const petId = req.params.id;
   const { name, type_id, breed, date_of_birth, gender, owner_id, notes } = req.body;
 
+  // Validate required fields
+  if (!name || !type_id || !owner_id) {
+    return res.status(400).json({ error: 'Required fields: name, type_id, owner_id' });
+  }
+
+  if (!Number.isInteger(type_id) || !Number.isInteger(owner_id)) {
+    return res.status(400).json({ error: 'type_id and owner_id must be valid integers' });
+  }
+
   const query = `
     UPDATE pets
     SET name = ?, type_id = ?, breed = ?, date_of_birth = ?, gender = ?, owner_id = ?, notes = ?
     WHERE id = ?
   `;
 
-  db.query(query, [name, type_id, breed, date_of_birth, gender, owner_id, notes, petId], (err, result) => {
+  db.query(query, [name, parseInt(type_id), breed, date_of_birth, gender, parseInt(owner_id), notes, petId], (err, result) => {
     if (err) {
       console.error('Error updating pet:', err);
       return res.status(500).json({ error: 'Error updating pet' });
     }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Pet not found' });
+    }
+
     res.status(200).json({ message: 'Pet updated successfully' });
   });
 };

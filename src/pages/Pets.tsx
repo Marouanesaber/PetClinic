@@ -10,9 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
 // Wrap Select with forwardRef to handle refs
-const ForwardedSelect = forwardRef((props, ref) => (
+const ForwardedSelect = React.forwardRef((props, ref) => (
   <Select {...props} ref={ref} />
 ));
+ForwardedSelect.displayName = "ForwardedSelect";
 
 interface Pet {
   id: number;
@@ -36,7 +37,7 @@ const PetsPage = () => {
   const [isEditPetOpen, setIsEditPetOpen] = useState(false);
   const [isViewPetOpen, setIsViewPetOpen] = useState(false);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
-  const { register, handleSubmit, reset, setValue, control } = useForm();
+  const { register, handleSubmit, reset, setValue, control, formState: { errors } } = useForm();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
@@ -68,9 +69,13 @@ const PetsPage = () => {
         name: data.name,
         type_id: parseInt(data.type_id),
         owner_id: parseInt(data.owner_id),
+        breed: data.breed || null,
+        date_of_birth: data.date_of_birth || null,
         gender: data.gender,
-        age: parseInt(data.age),
+        notes: data.notes || null,
       };
+
+      console.log("Sending payload to backend:", payload); // Debugging log
 
       const addedPet = await petsApi.create(payload);
       petsApi.getAll().then(setPets).catch(console.error);
@@ -86,14 +91,20 @@ const PetsPage = () => {
   const handleEditPet = async (data) => {
     if (!selectedPet) return;
     try {
-      const updatedPet = await petsApi.update(selectedPet.id, data);
+      const payload = {
+        ...data,
+        type_id: parseInt(data.type_id, 10),
+        owner_id: parseInt(data.owner_id, 10),
+      };
+
+      const updatedPet = await petsApi.update(selectedPet.id, payload);
       setPets(pets.map((pet) => (pet.id === selectedPet.id ? updatedPet : pet)));
       toast.success("Pet updated successfully");
       setIsEditPetOpen(false);
       setSelectedPet(null);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update pet");
+      toast.error(error.response?.data?.error || "Failed to update pet");
     }
   };
 
@@ -283,7 +294,7 @@ const PetsPage = () => {
 
       {/* Edit Pet Dialog */}
       <Dialog open={isEditPetOpen} onOpenChange={setIsEditPetOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby="edit-pet-description">
           <DialogHeader>
             <DialogTitle>Edit Pet</DialogTitle>
           </DialogHeader>
@@ -301,21 +312,70 @@ const PetsPage = () => {
               type="number"
               {...register("age", { required: true })}
             />
-            <Select {...register("gender", { required: true })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="unknown">Unknown</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="gender"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <ForwardedSelect {...field}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="unknown">Unknown</SelectItem>
+                  </SelectContent>
+                </ForwardedSelect>
+              )}
+            />
+            <Controller
+              name="type_id"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <ForwardedSelect {...field}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Pet Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {petTypes.map((type) => (
+                      <SelectItem key={type.id} value={String(type.id)}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </ForwardedSelect>
+              )}
+            />
+            {errors.type_id && <p className="text-red-500 text-xs mt-1">Pet type is required</p>}
+            <Controller
+              name="owner_id"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <ForwardedSelect {...field}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Owner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {owners.map((owner) => (
+                      <SelectItem key={owner.id} value={String(owner.id)}>
+                        {owner.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </ForwardedSelect>
+              )}
+            />
+            {errors.owner_id && <p className="text-red-500 text-xs mt-1">Owner is required</p>}
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsEditPetOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                Save Changes
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

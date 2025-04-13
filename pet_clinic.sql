@@ -44,18 +44,7 @@ ALTER TABLE owners ADD COLUMN user_id INT;
 
 -- Add city column to owners table
 ALTER TABLE owners ADD COLUMN city VARCHAR(50);
-+----+-------------+
-| id | name        |
-+----+-------------+
-|  1 | Dog         |
-|  2 | Cat         |
-|  3 | Bird        |
-|  4 | Rabbit      |
-|  5 | Hamster     |
-|  6 | Guinea Pig  |
-|  7 | Reptile     |
-|  8 | Other       |
-+----+-------------+
+
 -- Add ON DELETE CASCADE to owners table
 ALTER TABLE owners
 ADD CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
@@ -87,6 +76,10 @@ CREATE TABLE pets (
 -- Add ON DELETE CASCADE to pets table
 ALTER TABLE pets
 ADD CONSTRAINT fk_owner_id FOREIGN KEY (owner_id) REFERENCES owners(id) ON DELETE CASCADE;
+
+-- Ensure foreign key constraints for type_id and owner_id in pets table
+ALTER TABLE pets
+ADD CONSTRAINT fk_type_id FOREIGN KEY (type_id) REFERENCES pet_types(id) ON DELETE CASCADE;
 
 -- Create vets table
 CREATE TABLE vets (
@@ -359,6 +352,11 @@ INSERT INTO pet_types (name) VALUES
 ('Reptile'),
 ('Other');
 
+-- Insert additional pet types for testing
+INSERT IGNORE INTO pet_types (id, name) VALUES
+(9, 'Fish'),
+(10, 'Turtle');
+
 -- Insert visit types
 INSERT INTO visit_types (name, description) VALUES 
 ('Wellness Check', 'Routine health examination'),
@@ -451,6 +449,11 @@ INSERT INTO owners (first_name, last_name, email, telephone, address, city) VALU
 ('Ivy', 'Green', 'ivy.green@example.com', '901-234-5678', '951 Willow St', 'Springfield'),
 ('Jack', 'White', 'jack.white@example.com', '012-345-6789', '357 Aspen St', 'Springfield');
 
+-- Insert additional owners for testing
+INSERT IGNORE INTO owners (first_name, last_name, email, telephone, address, city) VALUES
+('Test', 'Owner1', 'test.owner1@example.com', '111-222-3333', '123 Test St', 'Testville'),
+('Test', 'Owner2', 'test.owner2@example.com', '444-555-6666', '456 Test Ave', 'Testville');
+
 -- Insert new pets
 INSERT INTO pets (owner_id, name, type_id, breed, date_of_birth, gender, notes) VALUES
 (1, 'Buddy', 1, 'Golden Retriever', '2020-05-10', 'male', 'Loves playing fetch'),
@@ -463,6 +466,15 @@ INSERT INTO pets (owner_id, name, type_id, breed, date_of_birth, gender, notes) 
 (8, 'Max', 1, 'German Shepherd', '2019-06-30', 'male', 'Protective and loyal'),
 (9, 'Coco', 2, 'Ragdoll', '2020-04-18', 'female', 'Calm and loves cuddles'),
 (10, 'Shadow', 1, 'Doberman', '2021-08-22', 'male', 'Alert and intelligent');
+
+-- Insert additional pets
+INSERT INTO pets (owner_id, name, type_id, breed, date_of_birth, gender, notes) VALUES
+(1, 'Mittens Max', 2, 'Siamese', '2019-03-15', 'female', 'Updated pet details'),
+(2, 'Sin Cara', 1, 'Beagle', '2021-07-20', 'male', 'Energetic and curious'),
+(3, 'Fluffy', 1, 'Golden Retriever', '2020-05-10', 'male', 'Loves playing fetch'),
+(4, 'Buddy', 1, 'Labrador', '2021-12-15', 'female', 'Friendly and loves water'),
+(11, 'Goldie', 9, 'Goldfish', '2021-01-01', 'unknown', 'Loves swimming in circles'),
+(12, 'Shelly', 10, 'Box Turtle', '2020-06-15', 'female', 'Enjoys basking under the heat lamp');
 
 -- Create procedures
 DELIMITER //

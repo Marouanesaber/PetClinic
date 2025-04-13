@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -13,6 +12,8 @@ interface PetEditDialogProps {
   editForm: {
     name: string;
     chipId: string;
+    type_id: string;
+    owner_id: string;
   };
   onEditFormChange: (field: string, value: string) => void;
   onSave: () => void;
@@ -55,6 +56,28 @@ export function PetEditDialog({
               id="edit-chipId"
               value={editForm.chipId}
               onChange={(e) => onEditFormChange('chipId', e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-typeId" className="text-right">
+              Type ID
+            </Label>
+            <Input
+              id="edit-typeId"
+              value={editForm.type_id || ''}
+              onChange={(e) => onEditFormChange('type_id', parseInt(e.target.value) || '')}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-ownerId" className="text-right">
+              Owner ID
+            </Label>
+            <Input
+              id="edit-ownerId"
+              value={editForm.owner_id || ''}
+              onChange={(e) => onEditFormChange('owner_id', parseInt(e.target.value) || '')}
               className="col-span-3"
             />
           </div>
